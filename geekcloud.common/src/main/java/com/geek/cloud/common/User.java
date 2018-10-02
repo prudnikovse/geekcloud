@@ -1,4 +1,4 @@
-package com.geek.cloud.server.bo;
+package com.geek.cloud.common;
 
 import java.util.Date;
 
@@ -6,15 +6,12 @@ public class User {
     private long UserId;
     private String UserName;
     private String LoweredUserName;
-    private Date LastActivityDate;
     private String Password;
     private String PasswordSalt;
     private String Email;
-    private boolean IsApproved;
     private boolean IsLockedOut;
     private Date CreateDate;
     private Date LastLoginDate;
-    private Date LastLockoutDate;
 
     public long getUserId() {
         return UserId;
@@ -38,14 +35,6 @@ public class User {
 
     public void setLoweredUserName(String loweredUserName) {
         LoweredUserName = loweredUserName;
-    }
-
-    public Date getLastActivityDate() {
-        return LastActivityDate;
-    }
-
-    public void setLastActivityDate(Date lastActivityDate) {
-        LastActivityDate = lastActivityDate;
     }
 
     public String getPassword() {
@@ -72,14 +61,6 @@ public class User {
         Email = email;
     }
 
-    public boolean isApproved() {
-        return IsApproved;
-    }
-
-    public void setApproved(boolean approved) {
-        IsApproved = approved;
-    }
-
     public boolean isLockedOut() {
         return IsLockedOut;
     }
@@ -102,13 +83,5 @@ public class User {
 
     public void setLastLoginDate(Date lastLoginDate) {
         LastLoginDate = lastLoginDate;
-    }
-
-    public Date getLastLockoutDate() {
-        return LastLockoutDate;
-    }
-
-    public void setLastLockoutDate(Date lastLockoutDate) {
-        LastLockoutDate = lastLockoutDate;
     }
 }
