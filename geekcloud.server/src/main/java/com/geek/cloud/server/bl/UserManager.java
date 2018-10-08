@@ -1,13 +1,12 @@
 package com.geek.cloud.server.bl;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import com.geek.cloud.common.User;
 import com.geek.cloud.server.dal.UserRepository;
-import  java.security.MessageDigest;
 
 import com.geek.cloud.common.*;
+import com.geek.cloud.common.Helpers.HashHelper;
 
 public class UserManager {
     private static Object _InstanceLock = new Object();
@@ -26,45 +25,18 @@ public class UserManager {
         return _Instance;
     }
 
-    public static String getHash(String source){
-        try{
-            MessageDigest algorithm = MessageDigest.getInstance("MD5");
-            algorithm.reset();
-            algorithm.update(source.getBytes());
-            byte messageDigest[] = algorithm.digest();
-
-            StringBuffer hexString = new StringBuffer();
-            for (int i=0;i<messageDigest.length;i++) {
-                hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
-            }
-            return hexString.toString();
-        }catch(NoSuchAlgorithmException nsae){
-
-        }
-        return "";
-    }
-
-    public static String createPasswordHash(String pwd, String salt) {
-        StringBuilder saltAndPwd = new StringBuilder(pwd + salt);
-        String hashedPwd = "";
-        for (int i = 0; i < 100; i++)
-        {
-            hashedPwd = getHash(saltAndPwd.toString());
-            saltAndPwd.append(hashedPwd);
-        }
-        return hashedPwd;
-    }
-
     public ResultItem<User> createUser(User source){
         ResultItem<User> res = new ResultItem();
 
         try(UserRepository db = new UserRepository()) {
-            ResultItem<User> userRes = getUser(source.getUserName());
-            if(userRes.isSuccess() && userRes.getData() != null)
+            User user = db.getUser(source.getUserName());
+            if(user != null)
                 throw new Exception("Пользователь с таким именем уже сохранен в системе");
 
             source.setLoweredUserName(source.getUserName().toLowerCase());
             source.setLockedOut(false);
+            source.setPasswordSalt(HashHelper.getHash(source.getPasswordSalt()));
+            source.setPassword(HashHelper.createPasswordHash(source.getPassword(), source.getPasswordSalt()));
 
             res.setSuccess(db.createUser(source));
             if(res.isSuccess())
@@ -82,7 +54,9 @@ public class UserManager {
         ResultItem<User> res = new ResultItem();
 
         try(UserRepository db = new UserRepository()) {
-            res.setData(db.getUser(userName));
+            User user = db.getUser(userName);
+            if(user != null)
+                res.setData(user);
             res.setSuccess(true);
         }catch (Exception ex){
             res.setMessage(ex.getMessage());
@@ -95,7 +69,7 @@ public class UserManager {
         ResultItem<User> res = getUser(userName);
         if (res.isSuccess() && res.getData() != null) {
             User user = res.getData();
-            if (user.isLockedOut() == false && user.getPassword().equals(createPasswordHash(password, user.getPasswordSalt()))) {
+            if (user.isLockedOut() == false && user.getPassword().equals(HashHelper.createPasswordHash(password, user.getPasswordSalt()))) {
                 isValid = true;
                 user.setLastLoginDate(new Date());
 
@@ -110,9 +84,9 @@ public class UserManager {
 
         if (res.isSuccess() && res.getData() != null) {
             User user = res.getData();
-            if (user.getPassword().equals(createPasswordHash(oldPassword, user.getPasswordSalt()))) {
+            if (user.getPassword().equals(HashHelper.createPasswordHash(oldPassword, user.getPasswordSalt()))) {
                 //user.setPasswordSalt(Crypto.GenerateSalt());
-                user.setPassword(createPasswordHash(newPassword, user.getPasswordSalt()));
+                user.setPassword(HashHelper.createPasswordHash(newPassword, user.getPasswordSalt()));
                 return true;
             } else
                 return false;

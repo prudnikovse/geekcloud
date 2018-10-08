@@ -16,48 +16,50 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("Server read...");
         try {
             if (msg == null)
                 return;
-            ResponseData response = null;
+            ResponseData response = new ResponseData();
             if (msg instanceof RequestData) {
                 RequestData request = (RequestData) msg;
+                response.setAction(request.getAction());
                 switch (request.getAction()){
                     case REGISTERUSER:{
                         if(request.getData() != null && request.getData() instanceof User){
-                            ResultItem<User> regRes = registerUser((User)request.getData());
-                            if(regRes.isSuccess()){
-                                User user = regRes.getData();
-                                response = authUser(user.getUserName(), user.getPassword());
-                            }else{
-                                response = new ResponseData();
-                                response.setMessage(regRes.getMessage());
-                            }
-                        }
+                            User user = (User)request.getData();
+                            String password = user.getPassword();
+                            ResultItem<User> res = registerUser(user);
+                            if(res.isSuccess()){
+                                authUser(user.getUserName(), password, response);
+                            }else
+                                response.setMessage(res.getMessage());
+                        }else
+                            response.setMessage("Server received wrong object in body!");
                         break;
                     }
                     case AUTHUSER:{
                         if(request.getData() != null && request.getData() instanceof String) {
                             String logopass[] = ((String)request.getData()).split("&", 2);
-                            response = authUser(logopass[0], logopass[1]);
-                        }
+                            authUser(logopass[0], logopass[1], response);
+                        } else
+                            response.setMessage("Server received wrong object in body!");
                         break;
                     }
                     default:{
-                        response = new ResponseData();
                         response.setMessage("Пользователь не прошел аутентификацию");
                     }
                 }
-                response.setAction(request.getAction());
                 if(_isAuthorize){
-                    ctx.pipeline().addLast(new ActionHandler(_login));
+                    ctx.pipeline().addLast(
+                            new ActionHandler(_login),
+                            new FileHandler(_login));
                     ctx.pipeline().remove(AuthHandler.class);
                 }
             } else {
-                System.out.printf("Server received wrong object!");
-                response = new ResponseData();
                 response.setMessage("Server received wrong object!");
             }
+            System.out.println("Server response...");
             ctx.writeAndFlush(response);
         } finally {
             ReferenceCountUtil.release(msg);
@@ -75,12 +77,12 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
         return res;
     }
 
-    private ResponseData authUser(String userName, String password){
+    private void authUser(String userName, String password, ResponseData response){
         _isAuthorize = UserManager.instance().validateUser(userName, password);
         _login = userName;
 
-        ResponseData response = new ResponseData();
         response.setSuccess(_isAuthorize);
-        return response;
+        response.setMessage(_isAuthorize ? "Вы вошли под пользователем " + userName : "Не удалось подключиться к серверу. " +
+                "Проверьте имя пользователя или пароль");
     }
 }

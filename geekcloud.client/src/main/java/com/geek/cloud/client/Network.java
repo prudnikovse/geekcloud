@@ -77,4 +77,13 @@ public class Network {
     public void closeConnection(){
         _channel.close();
     }
+
+    public boolean isLogin(){
+        if(isConnectionOpen()){
+            ClientHandler clientHandler = _channel.pipeline().get(ClientHandler.class);
+            if (clientHandler != null)
+                return clientHandler.isLogin();
+        }
+        return false;
+    }
 }

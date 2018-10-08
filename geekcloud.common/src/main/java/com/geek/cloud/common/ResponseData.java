@@ -37,6 +37,6 @@ public class ResponseData implements Serializable {
     }
 
     public void setAction(Action action) {
-        _action = _action;
+        _action = action;
     }
 }

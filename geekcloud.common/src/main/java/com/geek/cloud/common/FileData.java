@@ -4,16 +4,28 @@ import java.io.Serializable;
 
 public class FileData implements Serializable {
     private String _fileName;
-    private String _filePath;
+    private String _directoryPath;
     private String _hash;
+    private String _processId;
+
+    public String getProcessId() {
+        return _processId;
+    }
+
+    public void setProcessId(String processId) {
+        _processId = processId;
+    }
+
     private byte[] _data;
 
     //Общий размер файла
-    private long totalFileSize;
+    private long _totalSize;
+    //Текущий размер
+    private long _size;
     //Общее кол-во пакетов из которых состоит файл
-    private long totalPacket;
+    private long _totalPacket;
     //Текущий номер пакета
-    private long packet;
+    private long _packet;
 
     public String getHash() {
         return _hash;
@@ -31,28 +43,36 @@ public class FileData implements Serializable {
         _data = data;
     }
 
-    public long getTotalFileSize() {
-        return totalFileSize;
+    public long getSize() {
+        return _size;
     }
 
-    public void setTotalFileSize(long totalFileSize) {
-        this.totalFileSize = totalFileSize;
+    public void setSize(long size) {
+        _size = size;
+    }
+
+    public long getTotalSize() {
+        return _totalSize;
+    }
+
+    public void setTotalSize(long totalSize) {
+        _totalSize = totalSize;
     }
 
     public long getTotalPacket() {
-        return totalPacket;
+        return _totalPacket;
     }
 
     public void setTotalPacket(long packet) {
-        this.totalPacket = packet;
+        _totalPacket = packet;
     }
 
     public long getPacket() {
-        return packet;
+        return _packet;
     }
 
     public void setPacket(long packet) {
-        this.packet = packet;
+        _packet = packet;
     }
 
     public String getFileName() {
@@ -63,11 +83,11 @@ public class FileData implements Serializable {
         _fileName = fileName;
     }
 
-    public String getFilePath() {
-        return _filePath;
+    public String getDirectoryPath() {
+        return _directoryPath;
     }
 
-    public void setFilePath(String filePath) {
-        _filePath = filePath;
+    public void setDirectoryPath(String directoryPath) {
+        _directoryPath = directoryPath;
     }
 }

@@ -1,8 +1,9 @@
 package com.geek.cloud.common;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class User {
+public class User implements Serializable {
     private long UserId;
     private String UserName;
     private String LoweredUserName;

@@ -65,14 +65,14 @@ public class UserRepository implements AutoCloseable {
 
     public User getUser(String userName) throws SQLException{
         User res = null;
-        String sql = "SELECT * FROM usermembership WHERE UserName=?";
+        String sql = "SELECT * FROM usermembership WHERE LoweredUserName=?";
         try (PreparedStatement stat = cn.prepareStatement(sql)){
-            stat.setString(1, userName);
+            stat.setString(1, userName.toLowerCase());
 
             try(ResultSet rs = stat.executeQuery()){
                 if(rs != null){
-                    res = new User();
                     while (rs.next()){
+                        res = new User();
                         res.setUserName(rs.getString(2));
                         res.setLoweredUserName(rs.getString(3));
                         res.setPassword(rs.getString(4));

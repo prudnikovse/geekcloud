@@ -30,7 +30,10 @@ public class ActionHandler extends ChannelInboundHandlerAdapter {
                 switch (request.getAction()){
                     case UPLOADFILE:
                     case DOWNLOADFILE:{
+                        System.out.println(_login);
                         //TODO Передаем в FileServerHandler
+                        //ctx.pipeline().get(FileHandler.class).channelRead(ctx, msg);
+                        ctx.fireChannelRead(request);
                         break;
                     }
                     default:{
