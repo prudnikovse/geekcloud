@@ -1,5 +1,7 @@
 package com.geek.cloud.client;
 
+import com.geek.cloud.common.RequestData;
+import com.geek.cloud.common.ResponseData;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.bootstrap.*;
@@ -11,15 +13,23 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import io.netty.channel.*;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class Network {
     private static Object _InstanceLock = new Object();
     private static volatile Network _Instance;
 
-    private Channel _channel;
-
     private static final int PORT = 8189;
     private static final int MAX_OBJ_SIZE = 1024 * 1024 * 100; // 10 mb
+    private static final int QUEUE_SIZE = 10000;
+
+    private final ArrayBlockingQueue<ResponseData> _responses = new ArrayBlockingQueue<>(QUEUE_SIZE);
+    //private final ArrayBlockingQueue<RequestData> _requests = new ArrayBlockingQueue<>(QUEUE_SIZE);
+
+    private Channel _channel;
+    private ClientHandler _clientHandler;
+    //private boolean isRunning;
+
 
     private Network(){
     }
@@ -42,12 +52,13 @@ public class Network {
             bootstrap.group(workerGroup);
             bootstrap.channel(NioSocketChannel.class);
             bootstrap.remoteAddress(new InetSocketAddress("localhost", PORT));
+            _clientHandler = new ClientHandler(_responses);
             bootstrap.handler(new ChannelInitializer<SocketChannel>() {
                 protected void initChannel(SocketChannel socketChannel) throws Exception {
                     socketChannel.pipeline().addLast(
                             new ObjectDecoder(MAX_OBJ_SIZE, ClassResolvers.cacheDisabled(null)),
                             new ObjectEncoder(),
-                            new ClientHandler()
+                            _clientHandler
                     );
                     _channel = socketChannel;
                 }
@@ -55,6 +66,10 @@ public class Network {
 
             ChannelFuture channelFuture = bootstrap.connect().sync();
             channelFuture.channel().closeFuture().sync();
+//            isRunning = true;
+//            while (isRunning){
+//                _clientHandler.sendData(_requests.take());
+//            }
         }catch (Exception ex){
             ex.printStackTrace();
         }finally {
@@ -66,8 +81,13 @@ public class Network {
         return _channel;
     }
 
-    public void sendData(Object data){
-        _channel.writeAndFlush(data);
+    public void sendData(RequestData request) throws InterruptedException{
+        _channel.writeAndFlush(request);
+        //_requests.put(request);
+    }
+
+    public ResponseData getResponse() throws InterruptedException{
+        return _responses.take();
     }
 
     public boolean isConnectionOpen(){
@@ -78,12 +98,12 @@ public class Network {
         _channel.close();
     }
 
-    public boolean isLogin(){
-        if(isConnectionOpen()){
-            ClientHandler clientHandler = _channel.pipeline().get(ClientHandler.class);
-            if (clientHandler != null)
-                return clientHandler.isLogin();
-        }
-        return false;
-    }
+//    public boolean isLogin(){
+//        if(isConnectionOpen()){
+//            ClientHandler clientHandler = _channel.pipeline().get(ClientHandler.class);
+//            if (clientHandler != null)
+//                return clientHandler.isLogin();
+//        }
+//        return false;
+//    }
 }

@@ -25,7 +25,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
                 RequestData request = (RequestData) msg;
                 response.setAction(request.getAction());
                 switch (request.getAction()){
-                    case REGISTERUSER:{
+                    case REGISTER_USER:{
                         if(request.getData() != null && request.getData() instanceof User){
                             User user = (User)request.getData();
                             String password = user.getPassword();
@@ -38,7 +38,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
                             response.setMessage("Server received wrong object in body!");
                         break;
                     }
-                    case AUTHUSER:{
+                    case AUTH_USER:{
                         if(request.getData() != null && request.getData() instanceof String) {
                             String logopass[] = ((String)request.getData()).split("&", 2);
                             authUser(logopass[0], logopass[1], response);
@@ -51,9 +51,7 @@ public class AuthHandler extends ChannelInboundHandlerAdapter {
                     }
                 }
                 if(_isAuthorize){
-                    ctx.pipeline().addLast(
-                            new ActionHandler(_login),
-                            new FileHandler(_login));
+                    ctx.pipeline().addLast(new ActionHandler(_login));
                     ctx.pipeline().remove(AuthHandler.class);
                 }
             } else {
