@@ -19,23 +19,20 @@ public class DownloadFileManager implements AutoCloseable {
     private File tmpFile;
     private String _path;
 
-    public DownloadFileManager(FileData data, String directoryPath, int bufSize) throws IOException, PathException{
+    public DownloadFileManager(FileData data, String rootPath, int bufSize) throws IOException, PathException{
         _processing = true;
         _bufSize = bufSize;
         _buffer = ByteBuffer.allocate(bufSize);
         _remainedPacket = data.getTotalPacket();
 
-        tmpFile = new File(directoryPath + data.getDirectoryPath() + data.getProcessId());
-        _path = directoryPath + data.getDirectoryPath() + data.getFileName();
-        //_path = Paths.get(directoriPath + data.getDirectoryPath() + data.getFileName());
+        //На время процесса закачки файла создается временный файл с именем ID процесса
+        tmpFile = new File(rootPath + data.getDirectoryPath() + data.getProcessId());
+        _path = rootPath + data.getDirectoryPath() + data.getFileName();
 
-        if(Files.exists(Paths.get(_path)) || tmpFile.exists())
+        if(tmpFile.exists())
+            tmpFile.delete();
+        if(Files.exists(Paths.get(_path)))
             throw new PathException();
-
-//        File file = new File(directoriPath + data.getDirectoryPath() + data.getFileName());
-//        if(file.exists())
-//            file.delete();
-//        file.createNewFile();
 
         tmpFile.createNewFile();
 
@@ -50,6 +47,7 @@ public class DownloadFileManager implements AutoCloseable {
         _raf.seek(skip);
         _raf.write(data.getData(), 0, (int)data.getSize());
 
+        //Если получены все пакеты, закрываем поток и переименовываем временный файл
         if(--_remainedPacket == 0) {
             _raf.close();
             File file = new File(_path);
@@ -66,6 +64,10 @@ public class DownloadFileManager implements AutoCloseable {
 
     @Override
     public void close() {
+        //Подчищаем если процесс закачки не был завершен
+        if(_processing && tmpFile != null)
+            tmpFile.delete();
+
         if(_raf != null)
             try {
                 _raf.close();

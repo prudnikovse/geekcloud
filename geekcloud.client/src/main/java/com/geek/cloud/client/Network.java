@@ -20,16 +20,13 @@ public class Network {
     private static volatile Network _Instance;
 
     private static final int PORT = 8189;
-    private static final int MAX_OBJ_SIZE = 1024 * 1024 * 100; // 10 mb
+    private static final int MAX_OBJ_SIZE = 1024 * 1024 * 1000; // 1000 mb
     private static final int QUEUE_SIZE = 10000;
 
     private final ArrayBlockingQueue<ResponseData> _responses = new ArrayBlockingQueue<>(QUEUE_SIZE);
-    //private final ArrayBlockingQueue<RequestData> _requests = new ArrayBlockingQueue<>(QUEUE_SIZE);
 
     private Channel _channel;
     private ClientHandler _clientHandler;
-    //private boolean isRunning;
-
 
     private Network(){
     }
@@ -66,10 +63,6 @@ public class Network {
 
             ChannelFuture channelFuture = bootstrap.connect().sync();
             channelFuture.channel().closeFuture().sync();
-//            isRunning = true;
-//            while (isRunning){
-//                _clientHandler.sendData(_requests.take());
-//            }
         }catch (Exception ex){
             ex.printStackTrace();
         }finally {
@@ -81,9 +74,8 @@ public class Network {
         return _channel;
     }
 
-    public void sendData(RequestData request) throws InterruptedException{
+    public void sendData(RequestData request){
         _channel.writeAndFlush(request);
-        //_requests.put(request);
     }
 
     public ResponseData getResponse() throws InterruptedException{
@@ -97,13 +89,4 @@ public class Network {
     public void closeConnection(){
         _channel.close();
     }
-
-//    public boolean isLogin(){
-//        if(isConnectionOpen()){
-//            ClientHandler clientHandler = _channel.pipeline().get(ClientHandler.class);
-//            if (clientHandler != null)
-//                return clientHandler.isLogin();
-//        }
-//        return false;
-//    }
 }

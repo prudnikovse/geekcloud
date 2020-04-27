@@ -48,13 +48,24 @@ public class Main{ //  extends Application {
     public static void authorizeEvent(ResponseData res){
         System.out.println(res.getMessage());
         if(isLogin){
-            //startUploadFile("./geekcloud.server/upload/JavaFX 2.0. Разработка RIA-приложений.pdf", "");
-            //startDownloadFile("JavaFX 2.0. Разработка RIA-приложений.pdf", "");
+            new Thread(() -> {
+                startUploadFile("./geekcloud.server/upload/Урок 15. C# 5 Async & Await.mkv", "");
+            }).start();
+            new Thread(() -> {
+                startUploadFile("./geekcloud.server/upload/Урок 14. TPL.mkv", "");
+            }).start();
+            new Thread(() -> {
+                startDownloadFile("Урок 17. Домены приложений и NT службы.mkv", "");
+            }).start();
+            new Thread(() -> {
+                startDownloadFile("Урок 16. Функциональное программирование.mkv", "");
+            }).start();
+
             //renameFile("New folder", "New folder2");
             //deleteFile("JavaFX 2.pdf");
             //createDirectory("New folder");
             //deleteFile("New folder");
-            getFileList("");
+            //getFileList("");
         }
     }
 
@@ -143,6 +154,7 @@ public class Main{ //  extends Application {
                                             if (res.isSuccess()) {
                                                 try {
                                                     UploadFileManager ufm = uploads.get(processId);
+                                                    //Считываем очередную порцию из файла
                                                     FileData fd = ufm.readFile();
                                                     if(fd == null){
                                                         ufm.close();
@@ -157,6 +169,7 @@ public class Main{ //  extends Application {
                                                     System.out.println("Ошибка чтения файла!");
                                                 }
                                             }else {
+                                                uploads.get(processId).close();
                                                 uploads.remove(processId);
                                                 System.out.println(res.getMessage());
                                             }
@@ -179,7 +192,6 @@ public class Main{ //  extends Application {
                                                     dfm = new DownloadFileManager(data, "./geekcloud.server/download/", (int) data.getSize());
                                                     if (dfm.write(data) != 0) {
                                                         downloads.put(data.getProcessId(), dfm);
-
                                                     }
                                                 }
                                             }catch (Exception ex){
@@ -190,6 +202,7 @@ public class Main{ //  extends Application {
                                                 Network.instance().sendData(getRequest(Action.DOWNLOAD_FILE,
                                                         new String[] { data.getProcessId() }));
                                             }else{
+                                                dfm.close();
                                                 System.out.println("Файл " + data.getFileName() + " скачан!");
                                             }
                                         }

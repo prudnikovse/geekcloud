@@ -1,15 +1,11 @@
 package com.geek.cloud.common.bl;
 
-import com.geek.cloud.common.*;
-import io.netty.channel.Channel;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import com.geek.cloud.common.FileData;
 import com.geek.cloud.common.Helpers.HashHelper;
@@ -23,13 +19,7 @@ public class UploadFileManager implements AutoCloseable {
     private String _pathDirectoryTo;
     private int _totalPackets;
     private int _currentPacket = 0;
-
     private SeekableByteChannel _channel;
-
-    //private boolean _isProcessing;
-
-
-    private HashMap<String, Boolean> packets = new HashMap<>();
 
     public UploadFileManager(int bufSize){
         _bufSize = bufSize;
@@ -73,47 +63,9 @@ public class UploadFileManager implements AutoCloseable {
         return res;
     }
 
-//    public void uploadFile(String pathFrom, String pathDirectoryTo, Channel channel) throws InterruptedException{
-//        if(!channel.isOpen() || _isProcessing)
-//            return;
-//
-//        _isProcessing = true;
-//        int count;
-//        int i = 0;
-//        try(SeekableByteChannel fChannel = Files.newByteChannel(Paths.get(pathFrom))) {
-//            _totalPackets = _currentPacket = (int)Math.ceil(fChannel.size() * 1f / _bufSize);
-//            _processId = HashHelper.getHash(pathDirectoryTo + Paths.get(pathFrom).getFileName().toString());
-//
-//            do{
-//                count = fChannel.read(_buffer);
-//                if(count != -1){
-//                    _buffer.flip();
-//                    _buffer.get(_bytes,0, count);
-//                    _buffer.clear();
-//
-//                    FileData data = new FileData();
-//                    data.setTotalSize(fChannel.size());
-//                    data.setTotalPacket(_totalPackets);
-//                    data.setDirectoryPath(pathDirectoryTo);
-//                    data.setFileName(Paths.get(pathFrom).getFileName().toString());
-//                    data.setProcessId(_processId);
-//
-//                    data.setSize(count);
-//                    data.setPacket(++i);
-//                    data.setData(_bytes);
-//
-//                    RequestData request = new RequestData();
-//                    request.setAction(Action.UPLOADFILE);
-//                    request.setData(data);
-//
-//                    channel.writeAndFlush(request);
-//                    //Thread.sleep(1000);
-//                }
-//            }while (count != -1);
-//        }catch (IOException ex){
-//            System.out.println(ex.getMessage());
-//        }
-//    }
+    public void reset(){
+        _currentPacket = 0;
+    }
 
     public ArrayList<FileData> uploadFile(String pathFrom, String pathDirectoryTo){
         ArrayList<FileData> res = new ArrayList<>();
@@ -148,10 +100,6 @@ public class UploadFileManager implements AutoCloseable {
             System.out.println(ex.getMessage());
         }
         return res;
-    }
-
-    public int getCurrentUploadPacket() {
-        return _currentPacket;
     }
 
     public String getProcessId() {

@@ -16,7 +16,7 @@ import com.geek.cloud.server.bl.*;
 
 public class CloudServer {
     private static final int PORT = 8189;
-    private static final int MAX_OBJ_SIZE = 1024 * 1024 * 10; // 10 mb
+    private static final int MAX_OBJ_SIZE = 1024 * 1024 * 1000; // 10 mb
 
     public void run() throws Exception {
         EventLoopGroup mainGroup = new NioEventLoopGroup(); //Создаются тред-пуллы (отвечает за подключающихся клиентов, ожидает новых клиентов)
